@@ -11,14 +11,15 @@
 </style>
 </head>
 <body>
+<nav style="padding:0.75rem 1rem;font-size:0.9rem;align-self:flex-start"><a href="/history.html" style="color:#7bf;text-decoration:none">Weather patterns</a> &nbsp;·&nbsp; <a href="/places.html" style="color:#7bf;text-decoration:none">Places &#8594;</a></nav>
 <div id="msg">Locating you…</div>
 <div id="chart"></div>
 <script>
-  const API_KEY = "1THilLXqc0Wmn57P";
+  const API_KEY = "scqKx9H5tygNEZap"; // gitleaks:allow
   const msg = document.getElementById("msg");
   const chart = document.getElementById("chart");
 
-  async function reversGeocode(lat, lon) {
+  async function reverseGeocode(lat, lon) {
     try {
       const r = await fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
@@ -33,7 +34,7 @@
   }
 
   async function showMeteogram(lat, lon) {
-    const name = await reversGeocode(lat, lon);
+    const name = await reverseGeocode(lat, lon);
     const url = new URL("https://my.meteoblue.com/images/meteogram_extended");
     url.searchParams.set("lat", lat.toFixed(4));
     url.searchParams.set("lon", lon.toFixed(4));

@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Places Forecast</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #111; color: #eee; font-family: sans-serif; padding: 1.5rem; }
+  h1 { margin: 0 0 0.25rem; font-size: 1.3rem; }
+  nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
+  nav a { color: #7bf; text-decoration: none; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 480px), 1fr)); gap: 2rem; }
+  .card h2 { font-size: 1rem; margin: 0 0 0.5rem; }
+  .card img { width: 100%; height: auto; display: block; border-radius: 4px; }
+  .card .placeholder { background: #222; border-radius: 4px; height: 160px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<h1>Places Forecast</h1>
+<nav><a href="/">&#8592; My forecast</a> &nbsp;·&nbsp; <a href="/history.html">Weather patterns</a></nav>
+<div class="grid">
+</div>
+<script>
+  const API_KEY = "scqKx9H5tygNEZap"; // gitleaks:allow
+
+  const PLACES = [
+    { name: "Polkerris",  lat: 50.3382, lon: -4.6811 },
+    { name: "Newquay",    lat: 50.4136, lon: -5.0843 },
+    { name: "London",     lat: 51.5074, lon: -0.1278 },
+  ];
+
+  const grid = document.querySelector(".grid");
+
+  PLACES.forEach(({ name, lat, lon }) => {
+    const card = document.createElement("div");
+    card.className = "card";
+    const h2 = document.createElement("h2");
+    h2.textContent = name;
+    const placeholder = document.createElement("div");
+    placeholder.className = "placeholder";
+    placeholder.textContent = "Loading…";
+    card.append(h2, placeholder);
+    grid.appendChild(card);
+
+    const params = new URLSearchParams({
+      lat: lat.toFixed(4),
+      lon: lon.toFixed(4),
+      apikey: API_KEY,
+      location_name: name,
+    });
+    const img = new Image();
+    img.alt = name;
+    img.src = `https://my.meteoblue.com/images/meteogram?${params}`;
+    img.onload = () => placeholder.replaceWith(img);
+    img.onerror = () => { placeholder.textContent = "Failed to load."; };
+  });
+</script>
+</body>
+</html>

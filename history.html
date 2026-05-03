@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Weather Patterns</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #111; color: #eee; font-family: sans-serif; padding: 1.5rem; }
+  h1 { margin: 0 0 0.25rem; font-size: 1.3rem; }
+  nav { margin-bottom: 1.5rem; font-size: 0.9rem; }
+  nav a { color: #7bf; text-decoration: none; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 560px), 1fr)); gap: 2rem; }
+  .card h2 { font-size: 1rem; margin: 0 0 0.3rem; color: #aaa; font-weight: normal; }
+  .card p { font-size: 0.8rem; color: #666; margin: 0 0 0.6rem; }
+  .card img { width: 100%; height: auto; display: block; border-radius: 4px; }
+  .card iframe { width: 100%; height: 420px; border: none; border-radius: 4px; background: #fff; display: block; }
+  .card .placeholder { background: #222; border-radius: 4px; height: 200px; display: flex; align-items: center; justify-content: center; color: #555; font-size: 0.85rem; }
+  #status { margin-bottom: 1.5rem; color: #aaa; font-size: 0.9rem; }
+</style>
+</head>
+<body>
+<h1>Weather Patterns</h1>
+<nav><a href="/">&#8592; Forecast</a></nav>
+<div id="status">Locating you…</div>
+<div class="grid" id="grid"></div>
+<script>
+  const API_KEY = "scqKx9H5tygNEZap"; // gitleaks:allow
+  const status = document.getElementById("status");
+  const grid = document.getElementById("grid");
+
+  const CHARTS = [
+    {
+      title: "This year vs climate baseline",
+      desc: "Current year temperature and precipitation plotted against the 30-year norm.",
+      type: "img",
+      url: (lat, lon) => `https://my.meteoblue.com/visimage/meteogram_currentOnClimate?lat=${lat}&lon=${lon}&apikey=${API_KEY}`,
+    },
+    {
+      title: "Annual climate pattern",
+      desc: "Monthly averages for temperature, sunshine, and rainfall across a typical year.",
+      type: "img",
+      url: (lat, lon) => `https://my.meteoblue.com/visimage/meteogram_climateYear?lat=${lat}&lon=${lon}&apikey=${API_KEY}`,
+    },
+    {
+      title: "Hottest days — historical record",
+      desc: "Maximum temperature distribution by month over the observed record.",
+      type: "iframe",
+      url: (lat, lon) => `https://my.meteoblue.com/images/climate_model/max_temperatures?lat=${lat}&lon=${lon}&apikey=${API_KEY}`,
+    },
+    {
+      title: "Windiest periods — historical record",
+      desc: "Wind speed distribution by month over the observed record.",
+      type: "iframe",
+      url: (lat, lon) => `https://my.meteoblue.com/images/climate_model/wind_speeds?lat=${lat}&lon=${lon}&apikey=${API_KEY}`,
+    },
+  ];
+
+  function renderCharts(lat, lon) {
+    status.textContent = "";
+    CHARTS.forEach(({ title, desc, type, url }) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      const h2 = document.createElement("h2");
+      h2.textContent = title;
+      const p = document.createElement("p");
+      p.textContent = desc;
+      card.append(h2, p);
+
+      const src = url(lat.toFixed(4), lon.toFixed(4));
+      if (type === "iframe") {
+        const iframe = document.createElement("iframe");
+        iframe.src = src;
+        iframe.title = title;
+        card.appendChild(iframe);
+      } else {
+        const placeholder = document.createElement("div");
+        placeholder.className = "placeholder";
+        placeholder.textContent = "Loading…";
+        card.appendChild(placeholder);
+        const img = new Image();
+        img.alt = title;
+        img.src = src;
+        img.onload = () => placeholder.replaceWith(img);
+        img.onerror = () => { placeholder.textContent = "Failed to load image."; };
+      }
+
+      grid.appendChild(card);
+    });
+  }
+
+  if (!navigator.geolocation) {
+    status.textContent = "Geolocation is not supported by your browser.";
+  } else {
+    navigator.geolocation.getCurrentPosition(
+      pos => renderCharts(pos.coords.latitude, pos.coords.longitude),
+      err => { status.textContent = "Location access denied: " + err.message; }
+    );
+  }
+</script>
+</body>
+</html>

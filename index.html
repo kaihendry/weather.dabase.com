@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Local Weather</title>
+<style>
+  body { margin: 0; background: #111; color: #eee; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; }
+  #msg { font-size: 1.1rem; padding: 1rem; }
+  img { max-width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<div id="msg">Locating you…</div>
+<div id="chart"></div>
+<script>
+  const API_KEY = "1THilLXqc0Wmn57P";
+  const msg = document.getElementById("msg");
+  const chart = document.getElementById("chart");
+
+  async function reversGeocode(lat, lon) {
+    try {
+      const r = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+        { headers: { "User-Agent": "weather.dabase.com" } }
+      );
+      const d = await r.json();
+      const a = d.address || {};
+      return a.village || a.town || a.city_district || a.suburb || a.city || a.county || "";
+    } catch {
+      return "";
+    }
+  }
+
+  async function showMeteogram(lat, lon) {
+    const name = await reversGeocode(lat, lon);
+    const url = new URL("https://my.meteoblue.com/images/meteogram_extended");
+    url.searchParams.set("lat", lat.toFixed(4));
+    url.searchParams.set("lon", lon.toFixed(4));
+    url.searchParams.set("apikey", API_KEY);
+    if (name) url.searchParams.set("location_name", name);
+    const img = document.createElement("img");
+    img.alt = "7-day meteogram";
+    img.src = url.toString();
+    img.onerror = () => { msg.textContent = "Failed to load meteogram."; };
+    img.onload = () => { msg.textContent = ""; };
+    chart.appendChild(img);
+  }
+
+  if (!navigator.geolocation) {
+    msg.textContent = "Geolocation is not supported by your browser.";
+  } else {
+    navigator.geolocation.getCurrentPosition(
+      pos => showMeteogram(pos.coords.latitude, pos.coords.longitude),
+      err => { msg.textContent = "Location access denied: " + err.message; }
+    );
+  }
+</script>
+</body>
+</html>
